@@ -1,0 +1,56 @@
+.component-container {
+    box-sizing: content-box;
+    width: 350px;
+    height: 100%;
+}
+
+.autocomplete-suggestions {
+    border: 1px solid blue;
+    border-radius: 0 0 4px 4px;
+    box-sizing: border-box;
+    cursor: default;
+    display: none;
+    margin: 0;
+    overflow: hidden;
+    overflow-y: auto;
+    padding: 0;
+    width: 100%;
+    z-index: 9999;
+}
+
+.autocomplete-suggestions img {
+    margin-right: 10px;
+}
+
+.autocomplete-suggestions li {
+    font-family: sans-serif;
+    list-style-type: none;
+    overflow: hidden;
+    padding: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.autocomplete-suggestions li.selected {
+    background: #f0f0f0;
+    font-weight: bold;
+}
+
+.autocomplete-suggestions span.match {
+    color: red;
+}
+
+input[type=text] {
+    border: 1px solid #0f0f0f;
+    border-radius: 4px;
+    box-sizing: border-box;
+    font-size: 16px;
+    width: 100%;
+    padding: 10px;
+    text-decoration: none;
+}
+
+input[type=text]:focus {
+    border-color: blue;
+    outline: none;
+}
