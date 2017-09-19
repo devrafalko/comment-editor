@@ -1,9 +1,11 @@
+'use strict'
+
 const Autocomplete = function (options) {
   /*
     configuration options:
       dataUrl:  local or remote url of the data used for completions
       delay:    miliseconds to delay before suggesting completions
-      input:    DOMElement or Element selector of the input field
+      input:    DOM element or element selector of the input field
       limit:    limits the number of suggestions displayed
       minChar:  minimum number of characters to input before suggesting
       trigger:  character to type to trigger suggestions
@@ -11,7 +13,7 @@ const Autocomplete = function (options) {
   let config = {
     dataUrl: './data/completions.json',
     delay: 120,
-    input: 'input[type=text]',
+    input: 'div[contenteditable=true]',
     limit: null,
     minChars: 2,
     trigger: '@'
@@ -20,9 +22,8 @@ const Autocomplete = function (options) {
 
   let completions = []
   let delayId = null
-  let inputText = ''
   let suggest = false
-
+  let text = ''
 
   // load data for autocomplete suggestions
   let request = new XMLHttpRequest()
@@ -33,10 +34,8 @@ const Autocomplete = function (options) {
   request.send()
 
 
-  // add event listeners on input element
   const input = typeof config.input === 'object' ?
     config.input : document.querySelector(config.input)
-
   input.addEventListener('input', function() { watchInput() })
 
 
@@ -44,6 +43,10 @@ const Autocomplete = function (options) {
   const suggestionsList =
     input.parentNode.insertBefore(document.createElement('ul'), input.nextSibling)
   suggestionsList.classList.add('autocomplete-suggestions')
+
+
+  const blurHandler = function () { clearSuggestions() }
+  input.addEventListener('blur', blurHandler, true)
 
 
   // setup keyhandlers for selecting suggestions
@@ -56,25 +59,36 @@ const Autocomplete = function (options) {
 
   const keydownHandler = function (event) {
     let key = event.keyCode
-    if (suggestionsList.display != 'none' && (key === DOWN || key === UP)) {
-      let selected = suggestionsList.querySelector('li.selected')
-      if (selected) {
-        selected.classList.remove('selected')
-        if (key === DOWN) {
-          selected = selected.nextSibling || suggestionsList.firstChild
+    if (suggestionsList.display != 'none') {
+      if (key === DOWN || key === UP) {
+        let selected = suggestionsList.querySelector('.selected')
+        if (!selected) {
+          if (key === DOWN) {
+            selected = suggestionsList.firstChild
+          } else if (key === UP) {
+            selected = suggestionsList.lastChild
+          }
+        } else {
+          // remove style class from current selection
+          selected.classList.remove('selected')
+          // determine next item in list and set it as selected
+          if (key === DOWN) {
+            selected = selected.nextSibling || suggestionsList.firstChild
+          } else if (key === UP) {
+            selected = selected.previousSibling || suggestionsList.lastChild
+          }
         }
-        if (key === UP) {
-          selected = selected.previousSibling || suggestionsList.lastChild
-        }
-      } else {
-        if (key === DOWN) {
-          selected = suggestionsList.firstChild
-        }
-        if (key === UP) {
-          selected = suggestionsList.lastChild
+        // add style class to the newly selected item
+        selected.classList.add('selected')
+      }
+      else if (key === ENTER || key === TAB) {
+        let selected = suggestionsList.querySelector('li.selected')
+        if (selected) {
+          selectSuggestion(selected)
+          // prevent new line from being inserted or input losing focus
+          event.preventDefault()
         }
       }
-      selected.classList.add('selected')
     }
   }
   window.addEventListener('keydown', function(event) { keydownHandler(event) })
@@ -82,21 +96,22 @@ const Autocomplete = function (options) {
 
   const keyupHander = function (event) {
     let key = event.keyCode
-
-    if (suggestionsList.display != 'none' && (key === ENTER || key === TAB)) {
-      let selected = suggestionsList.querySelector('li.selected')
-      if (selected) {
-        insertCompletion(selected.dataset.username)
-        setTimeout(clearSuggestions, 100)
-      }
-    }
-
     if (suggestionsList.display != 'none' && key === ESC) {
       setTimeout(clearSuggestions, 10)
     }
   }
   window.addEventListener('keyup', function(event) { keyupHander(event) })
 
+
+  const mousedownHandler = function (event) {
+    selectSuggestion(this)
+  }
+
+  const mouseoverHandler = function (event) {
+    let selected = suggestionsList.querySelector('.selected')
+    if (selected) selected.classList.remove('selected')
+    this.classList.add('selected')
+  }
 
   const filterCompletions = function (text) {
     // split text to build a pattern that matches non-consecutive characters
@@ -106,8 +121,34 @@ const Autocomplete = function (options) {
     })
   }
 
+  // Observing the usertags for characterData mutation allows the inserted
+  // user name text to be treated as a unit rather than individual characters
+  // in the contenteditable div and deleted rather than becoming corrupted.
+  const usertagsObserver = new MutationObserver(function(mutations) {
+    mutations.forEach(function(mutation) {
+      if (mutation.target.parentNode.className === 'usertag') {
+        input.removeChild(mutation.target.parentNode)
+      }
+    })
+  })
+
+
   const insertCompletion = function (completion) {
-    input.value = input.value.replace(config.trigger + inputText, completion)
+    if (input.nodeName === 'INPUT') {
+
+    } else {
+      // let usertag = document.createElement('span')
+      // usertag.setAttribute('class', 'usertag')
+      // usertag.dataset['username'] = completion
+      // usertag.appendChild(document.createTextNode(completion))
+
+      // TODO: refactor the insert method to accept the actual element
+      // or a document fragement rather than an HTML string...
+      insertAtCaret(`<span class="usertag" data-username="${completion}">${completion}</span>`)
+
+      let tag = document.querySelector('.usertag')
+      usertagsObserver.observe(tag.firstChild, { characterData:true })
+    }
   }
 
 
@@ -133,59 +174,120 @@ const Autocomplete = function (options) {
       let text = `${suggestion.name} (${suggestion.username})`
       item.appendChild(document.createTextNode(text))
 
+      item.addEventListener('mousedown', mousedownHandler)
+      item.addEventListener('mouseover', mouseoverHandler)
+
       suggestionsList.appendChild(item)
     })
-
-    input.style['border-bottom-right-radius'] = 0
-    input.style['border-bottom-left-radius'] = 0
 
     suggestionsList.style.display = 'block'
   }
 
+  const selectSuggestion = function (selected) {
+    insertCompletion(selected.dataset.username)
+    setTimeout(clearSuggestions, 100)
+  }
+
   const clearSuggestions = function () {
     suggestionsList.style.display = 'none'
-    input.style['border-bottom-right-radius'] = '4px'
-    input.style['border-bottom-left-radius'] = '4px'
     while (suggestionsList.lastChild) {
       suggestionsList.lastChild.remove()
     }
   }
 
 
+  /*
+    http://stackoverflow.com/questions/4811822/get-a-ranges-start-and-end-offsets-relative-to-its-parent-container/4812022#4812022
+  */
+  function getCaretCharacterOffsetWithin (element) {
+    let caretOffset = 0
+    let doc = element.ownerDocument || element.document
+    let win = doc.defaultView || doc.parentWindow
+    let range
+    let preCaretRange
+    if (typeof win.getSelection !== 'undefined' && win.getSelection().rangeCount > 0) {
+      range = win.getSelection().getRangeAt(0)
+      preCaretRange = range.cloneRange()
+      preCaretRange.selectNodeContents(element)
+      preCaretRange.setEnd(range.endContainer, range.endOffset)
+      caretOffset = preCaretRange.toString().length
+    }
+    return caretOffset
+  }
+
+
+  function insertAtCaret (html) {
+    if (typeof window.getSelection !== 'undefined') {
+      let selection = window.getSelection()
+      if (selection.getRangeAt && selection.rangeCount > 0) {
+        let range = selection.getRangeAt(0)
+        range.deleteContents()
+
+        let fragment = document.createDocumentFragment()
+        let element = document.createElement('div')
+        element.innerHTML = html
+
+        let lastNode
+        let node
+        while (node = element.firstChild) {
+          lastNode = fragment.appendChild(node)
+        }
+        range.insertNode(fragment)
+
+        // place cursor at end of selection
+        if (lastNode) {
+          // NOTE: setting contentEditable to false makes webkit place the caret
+          // after the last element of the inserted fragment such that when the
+          // user continues typing it is outside of the 'usertag' span element
+          lastNode.contentEditable = false
+
+          range = range.cloneRange()
+          range.setStartAfter(lastNode)
+          range.collapse(true)
+          selection.removeAllRanges()
+          selection.addRange(range)
+        }
+      }
+    }
+  }
+
+
   const watchInput = function () {
-    let cursor = input.selectionStart
+    // cursor position and text of input element depend on the element type
+    let cursor = (input.nodeName === 'INPUT') ?
+      input.selectionStart : getCaretCharacterOffsetWithin(input)
+    let inputText = (input.nodeName === 'INPUT') ? input.value : input.innerHTML
     let i = cursor - 1
     let j = cursor
-
-    inputText = ''
+    text = '' //text to be completed, TODO: this vairable needs a better name
 
     while (i >= 0) {
-      let char = input.value.charAt(i)
+      let char = inputText.charAt(i)
       if (char.match(/\w/)) {
-        inputText = char.concat(inputText)
+        text = char.concat(text)
         --i
       } else break
     }
 
-    if (input.value.charAt(i) === config.trigger) {
+    if (inputText.charAt(i) === config.trigger) {
       suggest = true
     } else {
       suggest = false
     }
 
-    // iterate forward when it is not at end of input
-    while (j <= input.value.length) {
-      let char = input.value.charAt(j)
+    // iterate forward when cursor is not at end of input
+    while (j <= inputText.length) {
+      let char = inputText.charAt(j)
       if (char.match(/\w/)) {
-        inputText = inputText.concat(char)
+        text = text.concat(char)
         ++j
       } else break
     }
 
     clearSuggestions()
 
-    if (suggest && inputText.length >= config.minChars) {
-      delayId = setTimeout(function(){ getSuggestions(inputText) }, config.delay)
+    if (suggest && text.length >= config.minChars) {
+      delayId = setTimeout(function(){ getSuggestions(text) }, config.delay)
     }
   }
 
@@ -194,6 +296,7 @@ const Autocomplete = function (options) {
     input.removeEventListener('input', watchInput)
     input.parentNode.removeChild(suggestionsList)
     clearTimeout(delayId)
+    usertagsObserver.disconnect()
   }
 
   return this

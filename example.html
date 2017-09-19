@@ -8,11 +8,11 @@
 </head>
 <body>
   <div class="component-container">
-    <input type="text" placeholder="..." />
+    <div id="comment-editor" class="comment-editor" contenteditable="true"></div>
   </div>
 <script src="autocomplete.js"></script>
 <script>
-    let userList = new Autocomplete({ dataUrl:'./data/users.json' })
+  let commentEditor = new Autocomplete({ dataUrl:'./data/users.json' })
 </script>
 </body>
 </html>
