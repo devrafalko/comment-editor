@@ -24,6 +24,7 @@ const Autocomplete = function (options) {
   let delayId = null
   let suggest = false
   let text = ''
+  let textCompletionRange = document.createRange()
 
   // load data for autocomplete suggestions
   let request = new XMLHttpRequest()
@@ -42,7 +43,12 @@ const Autocomplete = function (options) {
   // append elements to display autocomplete suggestions
   const suggestionsList =
     input.parentNode.insertBefore(document.createElement('ul'), input.nextSibling)
-  suggestionsList.classList.add('autocomplete-suggestions')
+  suggestionsList.setAttribute('class', 'autocomplete-suggestions')
+
+  // append a container for messages
+  // const messagesContainer =
+  //   input.parentNode.insertBefore(document.createElement('div'), input.nextSibling)
+  // messagesContainer.setAttribute('class', 'autocomplete-messages')
 
 
   const blurHandler = function () { clearSuggestions() }
@@ -59,8 +65,9 @@ const Autocomplete = function (options) {
 
   const keydownHandler = function (event) {
     let key = event.keyCode
-    if (suggestionsList.display != 'none') {
+    if (suggestionsList.style.display !== 'none') {
       if (key === DOWN || key === UP) {
+        event.preventDefault()
         let selected = suggestionsList.querySelector('.selected')
         if (!selected) {
           if (key === DOWN) {
@@ -79,7 +86,7 @@ const Autocomplete = function (options) {
           }
         }
         // add style class to the newly selected item
-        selected.classList.add('selected')
+        if (selected) selected.classList.add('selected')
       }
       else if (key === ENTER || key === TAB) {
         let selected = suggestionsList.querySelector('li.selected')
@@ -96,7 +103,7 @@ const Autocomplete = function (options) {
 
   const keyupHander = function (event) {
     let key = event.keyCode
-    if (suggestionsList.display != 'none' && key === ESC) {
+    if (suggestionsList.style.display !== 'none' && key === ESC) {
       setTimeout(clearSuggestions, 10)
     }
   }
@@ -144,7 +151,7 @@ const Autocomplete = function (options) {
 
       // TODO: refactor the insert method to accept the actual element
       // or a document fragement rather than an HTML string...
-      insertAtCaret(`<span class="usertag" data-username="${completion}">${completion}</span>`)
+      replaceSelectionWith(`<span class="usertag" data-username="${completion}">${completion}</span>`)
 
       let tag = document.querySelector('.usertag')
       usertagsObserver.observe(tag.firstChild, { characterData:true })
@@ -180,6 +187,11 @@ const Autocomplete = function (options) {
       suggestionsList.appendChild(item)
     })
 
+    // Display a message when no user mataches are found
+    // if (suggestions.length == 0) {
+    //   messagesContainer.innerHTML = `No user names match input text "${text}"`
+    // }
+
     suggestionsList.style.display = 'block'
   }
 
@@ -195,11 +207,10 @@ const Autocomplete = function (options) {
     }
   }
 
-
   /*
     http://stackoverflow.com/questions/4811822/get-a-ranges-start-and-end-offsets-relative-to-its-parent-container/4812022#4812022
   */
-  function getCaretCharacterOffsetWithin (element) {
+  const getCaretCharacterOffsetWithin = function (element) {
     let caretOffset = 0
     let doc = element.ownerDocument || element.document
     let win = doc.defaultView || doc.parentWindow
@@ -216,9 +227,54 @@ const Autocomplete = function (options) {
   }
 
 
-  function insertAtCaret (html) {
+  const getTextNodes = function (node) {
+    let textNodes = []
+    if (node.nodeType === 3) {
+      textNodes.push(node)
+    } else {
+      node.childNodes.forEach(function(child) {
+        textNodes.push.apply(textNodes, getTextNodes(child))
+      })
+    }
+    return textNodes
+  }
+
+
+  const setTextCompletionRange = function (element, start, end) {
+    if (document.createRange && window.getSelection) {
+      let range = document.createRange()
+      range.selectNodeContents(element)
+      let textNodes = getTextNodes(element)
+      let charCount = 0
+      let endCharCount
+      let foundStart = false
+
+      for (let textNode of textNodes) {
+        endCharCount = charCount + textNode.length
+        if (!foundStart && start >= charCount && start <= endCharCount) {
+          range.setStart(textNode, start - charCount)
+          foundStart = true
+        }
+        else if (end <= endCharCount) {
+          range.setEnd(textNode, end - charCount)
+          break
+        }
+        charCount = endCharCount
+      }
+
+      textCompletionRange = range
+    }
+  }
+
+
+  const replaceSelectionWith = function (html) {
     if (typeof window.getSelection !== 'undefined') {
+
+      // set the selection to the range created for the text we want completed
       let selection = window.getSelection()
+      selection.removeAllRanges()
+      selection.addRange(textCompletionRange)
+
       if (selection.getRangeAt && selection.rangeCount > 0) {
         let range = selection.getRangeAt(0)
         range.deleteContents()
@@ -227,8 +283,8 @@ const Autocomplete = function (options) {
         let element = document.createElement('div')
         element.innerHTML = html
 
-        let lastNode
-        let node
+        let lastNode, node
+
         while (node = element.firstChild) {
           lastNode = fragment.appendChild(node)
         }
@@ -237,10 +293,12 @@ const Autocomplete = function (options) {
         // place cursor at end of selection
         if (lastNode) {
           // NOTE: setting contentEditable to false makes webkit place the caret
-          // after the last element of the inserted fragment such that when the
-          // user continues typing it is outside of the 'usertag' span element
+          // after the last element of the inserted fragment so that when a user
+          // continues typing it is not in the text node of the inserted element
           lastNode.contentEditable = false
 
+          // to move the caret:
+          // replace selections with a range collapsed to a single position
           range = range.cloneRange()
           range.setStartAfter(lastNode)
           range.collapse(true)
@@ -256,10 +314,10 @@ const Autocomplete = function (options) {
     // cursor position and text of input element depend on the element type
     let cursor = (input.nodeName === 'INPUT') ?
       input.selectionStart : getCaretCharacterOffsetWithin(input)
-    let inputText = (input.nodeName === 'INPUT') ? input.value : input.innerHTML
+    let inputText = (input.nodeName === 'INPUT') ? input.value : input.textContent
     let i = cursor - 1
     let j = cursor
-    text = '' //text to be completed, TODO: this vairable needs a better name
+    text = '' //string of text to be completed
 
     while (i >= 0) {
       let char = inputText.charAt(i)
@@ -287,6 +345,8 @@ const Autocomplete = function (options) {
     clearSuggestions()
 
     if (suggest && text.length >= config.minChars) {
+      // select the text we want to replace
+      setTextCompletionRange(input, i, j)
       delayId = setTimeout(function(){ getSuggestions(text) }, config.delay)
     }
   }
