@@ -1,0 +1,48 @@
+{
+  "name": "usernames-autocomplete",
+  "version": "0.0.2",
+  "description": "A component to autocomplete usernames in an input element.",
+  "main": "autocomplete.js",
+  "directories": {
+    "test": "tests"
+  },
+  "scripts": {
+    "lint": "eslint . --ext .js; exit 0",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mphdotinfo/autocomplete.git"
+  },
+  "author": "matthew p hrudka",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mphdotinfo/autocomplete/issues"
+  },
+  "homepage": "https://github.com/mphdotinfo/autocomplete#readme",
+  "dependencies": {
+    "eslint": "^4.7.1",
+    "eslint-config-standard": "^10.2.1",
+    "eslint-plugin-filenames": "^1.2.0",
+    "eslint-plugin-import": "^2.7.0",
+    "eslint-plugin-json": "^1.2.0",
+    "eslint-plugin-markdown": "^1.0.0-beta.6",
+    "eslint-plugin-node": "^5.1.1",
+    "eslint-plugin-promise": "^3.5.0",
+    "eslint-plugin-standard": "^3.0.1",
+    "faucet": "0.0.1",
+    "gulp": "^3.9.1",
+    "gulp-cli": "^1.4.0",
+    "gulp-util": "^3.0.8",
+    "jasmine": "^2.8.0",
+    "jasmine-core": "^2.8.0",
+    "karma": "^1.7.1",
+    "karma-babel-preprocessor": "^7.0.0",
+    "karma-chrome-launcher": "^2.2.0",
+    "karma-eslint": "^2.2.0",
+    "karma-jasmine": "^1.1.0",
+    "karma-phantomjs-launcher": "^1.0.4",
+    "karma-tap": "^3.1.1",
+    "tape": "^4.8.0"
+  }
+}

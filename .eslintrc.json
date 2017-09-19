@@ -1,0 +1,35 @@
+{
+    "env": {
+        "browser": true,
+        "es6": true
+    },
+    "extends": "standard",
+    "parserOptions": {
+        "sourceType": "module"
+    },
+    "plugins": [
+        "filenames",
+        "import",
+        "json",
+        "markdown",
+        "standard",
+        "promise"
+    ],
+    "root": true,
+    "rules": {
+        "filenames/match-exported": ["warn", "camel"],
+        "filenames/match-regex": ["warn", "camel", true],
+        "filenames/no-index": ["warn"],
+        "linebreak-style": ["error", "unix"],
+        "no-console": ["warn", { "allow": ["warn", "error"] }],
+        "no-multiple-empty-lines": "off",
+        "no-var": ["error"],
+        "operator-linebreak": [
+            "error", "after", { "overrides": { "?": "after", ":": "before" }}
+        ],
+        "padded-blocks": "off",
+        "semi": ["error", "never"],
+        "space-before-function-paren": "off",
+        "spaced-comment": "off"
+    }
+}

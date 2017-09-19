@@ -60,7 +60,6 @@ const Autocomplete = function (options) {
   const UP    = 38
   const ENTER = 13
   const ESC   = 27
-  const SPACE = 32
   const TAB   = 9
 
   const keydownHandler = function (event) {
@@ -154,7 +153,7 @@ const Autocomplete = function (options) {
       replaceSelectionWith(`<span class="usertag" data-username="${completion}">${completion}</span>`)
 
       let tag = document.querySelector('.usertag')
-      usertagsObserver.observe(tag.firstChild, { characterData:true })
+      usertagsObserver.observe(tag.firstChild, { characterData: true })
     }
   }
 
@@ -166,7 +165,7 @@ const Autocomplete = function (options) {
   const renderSuggestions = function (suggestions) {
     if (config.limit) {
       // limit number of suggestions displayed
-      suggestions = suggestions.slice(0,config.limit-1)
+      suggestions = suggestions.slice(0, config.limit - 1)
     }
     suggestions.forEach(function(suggestion) {
       let item = document.createElement('li')
@@ -347,7 +346,7 @@ const Autocomplete = function (options) {
     if (suggest && text.length >= config.minChars) {
       // select the text we want to replace
       setTextCompletionRange(input, i, j)
-      delayId = setTimeout(function(){ getSuggestions(text) }, config.delay)
+      delayId = setTimeout(function() { getSuggestions(text) }, config.delay)
     }
   }
 
