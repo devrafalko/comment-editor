@@ -1,8 +1,13 @@
-'use strict'
+import {
+  createRangeInElement,
+  getCaretCharacterOffsetWithin,
+  replaceSelectionWith
+} from './selectionRangeHelpers'
 
-const Autocomplete = function (options) {
+const autocomplete = function (options) {
   /*
     configuration options:
+      apiUrl:   The endpoint to which comments are posted on save
       dataUrl:  local or remote url of the data used for completions
       delay:    miliseconds to delay before suggesting completions
       input:    DOM element or element selector of the input field
@@ -11,6 +16,7 @@ const Autocomplete = function (options) {
       trigger:  character to type to trigger suggestions
   */
   let config = {
+    apiUrl: '',
     dataUrl: './data/completions.json',
     delay: 120,
     input: 'div[contenteditable=true]',
@@ -39,16 +45,16 @@ const Autocomplete = function (options) {
     config.input : document.querySelector(config.input)
   input.addEventListener('input', function() { watchInput() })
 
+  const saveButton =
+    input.parentNode.insertBefore(document.createElement('button'), input.nextSibling)
+  saveButton.setAttribute('class', 'save')
+  saveButton.appendChild(document.createTextNode('Save Comment'))
+  saveButton.addEventListener('click', function() { saveComment() })
 
   // append elements to display autocomplete suggestions
   const suggestionsList =
     input.parentNode.insertBefore(document.createElement('ul'), input.nextSibling)
   suggestionsList.setAttribute('class', 'autocomplete-suggestions')
-
-  // append a container for messages
-  // const messagesContainer =
-  //   input.parentNode.insertBefore(document.createElement('div'), input.nextSibling)
-  // messagesContainer.setAttribute('class', 'autocomplete-messages')
 
 
   const blurHandler = function () { clearSuggestions() }
@@ -97,7 +103,7 @@ const Autocomplete = function (options) {
       }
     }
   }
-  window.addEventListener('keydown', function(event) { keydownHandler(event) })
+  window.addEventListener('keydown', (event) => keydownHandler(event))
 
 
   const keyupHander = function (event) {
@@ -106,18 +112,8 @@ const Autocomplete = function (options) {
       setTimeout(clearSuggestions, 10)
     }
   }
-  window.addEventListener('keyup', function(event) { keyupHander(event) })
+  window.addEventListener('keyup', (event) => keyupHander(event))
 
-
-  const mousedownHandler = function (event) {
-    selectSuggestion(this)
-  }
-
-  const mouseoverHandler = function (event) {
-    let selected = suggestionsList.querySelector('.selected')
-    if (selected) selected.classList.remove('selected')
-    this.classList.add('selected')
-  }
 
   const filterCompletions = function (text) {
     // split text to build a pattern that matches non-consecutive characters
@@ -130,8 +126,8 @@ const Autocomplete = function (options) {
   // Observing the usertags for characterData mutation allows the inserted
   // user name text to be treated as a unit rather than individual characters
   // in the contenteditable div and deleted rather than becoming corrupted.
-  const usertagsObserver = new MutationObserver(function(mutations) {
-    mutations.forEach(function(mutation) {
+  const usertagsObserver = new MutationObserver((mutations) => {
+    mutations.forEach((mutation) => {
       if (mutation.target.parentNode.className === 'usertag') {
         input.removeChild(mutation.target.parentNode)
       }
@@ -150,7 +146,8 @@ const Autocomplete = function (options) {
 
       // TODO: refactor the insert method to accept the actual element
       // or a document fragement rather than an HTML string...
-      replaceSelectionWith(`<span class="usertag" data-username="${completion}">${completion}</span>`)
+      replaceSelectionWith(textCompletionRange,
+        `<span class="usertag" data-username="${completion}">${completion}</span>`)
 
       let tag = document.querySelector('.usertag')
       usertagsObserver.observe(tag.firstChild, { characterData: true })
@@ -180,8 +177,13 @@ const Autocomplete = function (options) {
       let text = `${suggestion.name} (${suggestion.username})`
       item.appendChild(document.createTextNode(text))
 
-      item.addEventListener('mousedown', mousedownHandler)
-      item.addEventListener('mouseover', mouseoverHandler)
+      item.addEventListener('mousedown', (event) => selectSuggestion(this))
+
+      item.addEventListener('mouseover', (event) => {
+        let selected = suggestionsList.querySelector('.selected')
+        if (selected) selected.classList.remove('selected')
+        this.classList.add('selected')
+      })
 
       suggestionsList.appendChild(item)
     })
@@ -190,7 +192,7 @@ const Autocomplete = function (options) {
     // if (suggestions.length == 0) {
     //   messagesContainer.innerHTML = `No user names match input text "${text}"`
     // }
-
+    saveButton.style.display = 'none'
     suggestionsList.style.display = 'block'
   }
 
@@ -201,110 +203,9 @@ const Autocomplete = function (options) {
 
   const clearSuggestions = function () {
     suggestionsList.style.display = 'none'
+    saveButton.style.display = 'block'
     while (suggestionsList.lastChild) {
       suggestionsList.lastChild.remove()
-    }
-  }
-
-  /*
-    http://stackoverflow.com/questions/4811822/get-a-ranges-start-and-end-offsets-relative-to-its-parent-container/4812022#4812022
-  */
-  const getCaretCharacterOffsetWithin = function (element) {
-    let caretOffset = 0
-    let doc = element.ownerDocument || element.document
-    let win = doc.defaultView || doc.parentWindow
-    let range
-    let preCaretRange
-    if (typeof win.getSelection !== 'undefined' && win.getSelection().rangeCount > 0) {
-      range = win.getSelection().getRangeAt(0)
-      preCaretRange = range.cloneRange()
-      preCaretRange.selectNodeContents(element)
-      preCaretRange.setEnd(range.endContainer, range.endOffset)
-      caretOffset = preCaretRange.toString().length
-    }
-    return caretOffset
-  }
-
-
-  const getTextNodes = function (node) {
-    let textNodes = []
-    if (node.nodeType === 3) {
-      textNodes.push(node)
-    } else {
-      node.childNodes.forEach(function(child) {
-        textNodes.push.apply(textNodes, getTextNodes(child))
-      })
-    }
-    return textNodes
-  }
-
-
-  const setTextCompletionRange = function (element, start, end) {
-    if (document.createRange && window.getSelection) {
-      let range = document.createRange()
-      range.selectNodeContents(element)
-      let textNodes = getTextNodes(element)
-      let charCount = 0
-      let endCharCount
-      let foundStart = false
-
-      for (let textNode of textNodes) {
-        endCharCount = charCount + textNode.length
-        if (!foundStart && start >= charCount && start <= endCharCount) {
-          range.setStart(textNode, start - charCount)
-          foundStart = true
-        }
-        else if (end <= endCharCount) {
-          range.setEnd(textNode, end - charCount)
-          break
-        }
-        charCount = endCharCount
-      }
-
-      textCompletionRange = range
-    }
-  }
-
-
-  const replaceSelectionWith = function (html) {
-    if (typeof window.getSelection !== 'undefined') {
-
-      // set the selection to the range created for the text we want completed
-      let selection = window.getSelection()
-      selection.removeAllRanges()
-      selection.addRange(textCompletionRange)
-
-      if (selection.getRangeAt && selection.rangeCount > 0) {
-        let range = selection.getRangeAt(0)
-        range.deleteContents()
-
-        let fragment = document.createDocumentFragment()
-        let element = document.createElement('div')
-        element.innerHTML = html
-
-        let lastNode, node
-
-        while (node = element.firstChild) {
-          lastNode = fragment.appendChild(node)
-        }
-        range.insertNode(fragment)
-
-        // place cursor at end of selection
-        if (lastNode) {
-          // NOTE: setting contentEditable to false makes webkit place the caret
-          // after the last element of the inserted fragment so that when a user
-          // continues typing it is not in the text node of the inserted element
-          lastNode.contentEditable = false
-
-          // to move the caret:
-          // replace selections with a range collapsed to a single position
-          range = range.cloneRange()
-          range.setStartAfter(lastNode)
-          range.collapse(true)
-          selection.removeAllRanges()
-          selection.addRange(range)
-        }
-      }
     }
   }
 
@@ -345,18 +246,40 @@ const Autocomplete = function (options) {
 
     if (suggest && text.length >= config.minChars) {
       // select the text we want to replace
-      setTextCompletionRange(input, i, j)
+      textCompletionRange = createRangeInElement(input, i, j)
       delayId = setTimeout(function() { getSuggestions(text) }, config.delay)
     }
   }
 
-
-  this.cleanup = function () {
+  const cleanup = function () {
+    input.contentEditable = false
     input.removeEventListener('input', watchInput)
+    input.parentNode.removeChild(saveButton)
     input.parentNode.removeChild(suggestionsList)
     clearTimeout(delayId)
     usertagsObserver.disconnect()
   }
 
-  return this
+  const saveComment = function() {
+    let comment = { html: input.innerHTML, plainText: input.textContent }
+
+    let request = new XMLHttpRequest()
+    request.addEventListener('readystatechange', function() {
+      if (request.readyState === 4 && request.status === 200) {
+        // console.log(request.responseText)
+      }
+    })
+    request.open('POST', config.apiUrl, true)
+    request.setRequestHeader('Content-type', 'application/json')
+    request.send(JSON.stringify(comment))
+
+    cleanup()
+  }
+
+  return {
+    cleanup: cleanup,
+    save: saveComment
+  }
 }
+
+export default autocomplete

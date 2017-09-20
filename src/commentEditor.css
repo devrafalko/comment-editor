@@ -9,7 +9,7 @@
 }
 
 .autocomplete-suggestions {
-    border: 1px solid blue;
+    border: 1px solid #2d7cfb;
     box-shadow: 1px 2px 3px rgba(0,0,90,0.2);
     box-sizing: border-box;
     cursor: default;
@@ -40,12 +40,12 @@
 }
 
 .autocomplete-suggestions li.selected {
-    background: #f0f0f0;
+    background: #cfe6fb;
     font-weight: bold;
 }
 
 .autocomplete-suggestions span.match {
-    color: red;
+    color: #cfe6cb;
 }
 
 input[type=text] {
@@ -58,7 +58,7 @@ input[type=text] {
 }
 
 input[type=text]:focus {
-    border-color: blue;
+    border-color: #2d7cfb;
     outline: none;
 }
 
@@ -73,20 +73,46 @@ div.comment-editor {
     text-decoration: none;
 }
 
+div.comment-editor[contenteditable=false] {
+    border-top: 1px solid #cfcfcf;
+    border-right: none;
+    border-bottom: 1px solid #cfcfcf;
+    border-left: none;
+    text-overflow: ellipsis;
+}
+
 div[contenteditable=true]:active,
 div[contenteditable=true]:focus {
-    border: 1px solid blue;
+    border: 1px solid #2d7cfb;
     outline:none;
 }
 
 .usertag {
-    border: 1px solid #ddd;
+    border: 1px solid #cfcfcf;
     border-radius: 2px;
-    padding: 2px;
+    display: inline-block;
+    padding: 2px 4px 2px 4px;
 }
 
-.usertag:focus {
-    border: 1px solid blue;
+.usertag:hover {
+    background-color: #cfe6fb;
+    border: 1px solid #cfe6fb;
+}
+
+button.save {
+    background-color: #ffffff;
+    border: 1px solid #cfcfcf;
     border-radius: 2px;
-    padding: 2px;
+    float: right;
+    font-size: 1em;
+    margin: 10px 0;
+    min-height: 32px;
+    min-width: 120px;
+}
+
+button.save:active,
+button.save:hover {
+    background-color: #cfe6fb;
+    border: 1px solid #cfe6fb;
+    outline:none;
 }
