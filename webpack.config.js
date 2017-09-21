@@ -1,10 +1,11 @@
-const UglifyJSPlugin = require('uglifyjs-webpack-plugin')
+const path = require('path')
+const webpack = require('webpack')
 
 module.exports = {
   entry: './src/main.js',
   output: {
     filename: 'bundle.js',
-    path: __dirname + '/dist'
+    path: path.join(__dirname, '/dist')
   },
   module: {
     loaders: [
@@ -20,8 +21,13 @@ module.exports = {
     ]
   },
   plugins: [
-    // new UglifyJSPlugin({
-    //   sourceMap: true
-    // })
-  ]
+    // new webpack.optimize.UglifyJsPlugin()
+  ],
+  devServer: {
+    compress: true
+  },
+  watch: true,
+  watchOptions: {
+    ignored: '/node_modules/'
+  }
 }

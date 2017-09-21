@@ -9,6 +9,7 @@
   "scripts": {
     "build": "del dist && webpack --config webpack.config.js",
     "clean": "del coverage dist",
+    "dev": "webpack-dev-server --config webpack.config.js",
     "karma": "karma start karma.conf.js",
     "lint": "eslint . --ext .js; exit 0",
     "test": "karma start karma.conf.js --single-run --no-auto-watch; exit 0"

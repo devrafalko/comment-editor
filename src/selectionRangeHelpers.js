@@ -20,6 +20,7 @@ export const getCaretCharacterOffsetWithin = function (element) {
 
 
 // recursively traverse starting at node to build an array of text nodes
+// INVESTIGATE: using NodeIterator or TreeWalker
 export const getTextNodes = function (node) {
   let textNodes = []
   if (node.nodeType === 3) {
@@ -44,6 +45,7 @@ export const createRangeInElement = function (element, start, end) {
     let endCharCount
     let foundStart = false
 
+    // INVESTIGATE: using NodeFilter and NodeIterator or TreeWalker
     for (let textNode of textNodes) {
       endCharCount = charCount + textNode.length
       if (!foundStart && start >= charCount && start <= endCharCount) {
@@ -62,7 +64,6 @@ export const createRangeInElement = function (element, start, end) {
 
 export const replaceSelectionWith = function (replacementRange, html) {
   if (typeof window.getSelection !== 'undefined') {
-
     // set the selection to the range created for the text we want completed
     let selection = window.getSelection()
     selection.removeAllRanges()
