@@ -10,7 +10,7 @@ const commentEditor = function (options) {
       savetoUrl:    The endpoint to which comments are posted on save
   */
   const autocomplete = options.autocomplete || null
-  const savetoUrl = options.saveToUrl || null
+  const savetoUrl = options.saveToUrl || 'dev/null'
 
   const getInputElement = function () {
     if (!options.input) {
@@ -23,19 +23,21 @@ const commentEditor = function (options) {
   const input = getInputElement()
   const suggestionsView = new SuggestionsList(input.parentNode)
 
-  // track range for replacement, used when a completion suggestion is selected
+  // range for replacement used when a completion suggestion is selected
   let autocompleteRange = document.createRange()
 
   const suggestCompletions = function () {
     let { suggestions, textRange } = autocomplete(input)
     autocompleteRange = textRange
     suggestionsView.clear()
-    suggestionsView.render(suggestions)
+    // only render view when there are suggestions!
+    if (suggestions && suggestions.length) {
+      suggestionsView.render(suggestions)
+    }
   }
 
   input.addEventListener('input', suggestCompletions, true)
   input.addEventListener('blur', suggestionsView.clear, true)
-
 
   // BUG: import createFancyTag fails
   // temporarily define it here as a fix.
@@ -64,7 +66,7 @@ const commentEditor = function (options) {
     input.removeEventListener('input', suggestCompletions)
     input.removeEventListener('blur', suggestionsView.clear)
     input.parentNode.removeChild(saveButton)
-    input.parentNode.removeChild(document.querySelector('.autocomplete-suggestions'))
+    suggestionsView.cleanup()
   }
 
 
@@ -73,19 +75,20 @@ const commentEditor = function (options) {
     let request = new XMLHttpRequest()
     request.addEventListener('readystatechange', function() {
       if (request.readyState === 4 && request.status === 200) {
-        // console.log(request.responseText)
+        cleanup()
+        // TODO: display message "Comment Saved!"
+      } else {
+        // TODO: display error message "Unable to save comment!"
       }
     })
     request.open('POST', savetoUrl, true)
     request.setRequestHeader('Content-type', 'application/json')
     request.send(JSON.stringify(comment))
-
-    cleanup()
   }
 
 
-  const saveButton =
-    input.parentNode.insertBefore(document.createElement('button'), suggestionsView.nextSibling)
+  const saveButton = input.parentNode.insertBefore(
+    document.createElement('button'), suggestionsView.nextSibling)
   saveButton.setAttribute('class', 'save')
   saveButton.appendChild(document.createTextNode('Save Comment'))
   saveButton.addEventListener('click', saveComment, true)

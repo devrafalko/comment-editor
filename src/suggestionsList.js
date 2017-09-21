@@ -39,10 +39,12 @@ const SuggestionsList = function (inputElement) {
             selected = selected.previousSibling || listElement.lastChild
           }
         }
-        // add style class to the newly selected item
-        if (selected) selected.classList.add('selected')
-      }
-      else if (key === ENTER || key === TAB) {
+        // add style class to the newly selected item and scroll into view
+        if (selected) {
+          selected.classList.add('selected')
+          selected.scrollIntoView()
+        }
+      } else if (key === ENTER || key === TAB) {
         let selected = listElement.querySelector('li.selected')
         if (selected) {
           selectSuggestion(selected)
@@ -52,7 +54,8 @@ const SuggestionsList = function (inputElement) {
       }
     }
   }
-  window.addEventListener('keydown', (event) => keydownHandler(event))
+  listElement.parentNode
+    .addEventListener('keydown', (event) => keydownHandler(event), true)
 
 
   const keyupHander = function (event) {
@@ -61,24 +64,26 @@ const SuggestionsList = function (inputElement) {
       setTimeout(clearSuggestions, 10)
     }
   }
-  window.addEventListener('keyup', (event) => keyupHander(event))
+  listElement.parentNode
+    .addEventListener('keyup', (event) => keyupHander(event), true)
 
 
   const renderSuggestions = function (suggestions) {
     if (suggestions) {
       suggestions.forEach((suggestion) => {
         let item = new UserListItem(suggestion)
-        item.addEventListener('mousedown', (event) => selectSuggestion(this))
+        item.addEventListener('mousedown', (event) => {
+          selectSuggestion(event.target)
+        })
         item.addEventListener('mouseover', (event) => {
           let selected = listElement.querySelector('.selected')
           if (selected) selected.classList.remove('selected')
-          this.classList.add('selected')
+          event.target.classList.add('selected')
         })
         listElement.appendChild(item)
       })
+      listElement.style.display = 'block'
     }
-
-    listElement.style.display = 'block'
   }
 
   const selectSuggestion = function (selected) {
@@ -97,7 +102,12 @@ const SuggestionsList = function (inputElement) {
     }
   }
 
+  const cleanup = function () {
+    listElement.parentNode.removeChild(listElement)
+  }
+
   return {
+    cleanup: cleanup,
     clear: clearSuggestions,
     render: renderSuggestions
   }
