@@ -39,10 +39,11 @@ const SuggestionsList = function (inputElement) {
             selected = selected.previousSibling || listElement.lastChild
           }
         }
-        // add style class to the newly selected item and scroll into view
+        // add style class to selected item and scroll item into view
         if (selected) {
           selected.classList.add('selected')
-          selected.scrollIntoView()
+          let alignToTop = (key === DOWN) ? false : true
+          selected.scrollIntoView(alignToTop)
         }
       } else if (key === ENTER || key === TAB) {
         let selected = listElement.querySelector('li.selected')
@@ -74,6 +75,9 @@ const SuggestionsList = function (inputElement) {
         let item = new UserListItem(suggestion)
         item.addEventListener('mousedown', (event) => {
           selectSuggestion(event.target)
+        })
+        item.addEventListener('mouseout', (event) => {
+          event.target.classList.remove('selected')
         })
         item.addEventListener('mouseover', (event) => {
           let selected = listElement.querySelector('.selected')
