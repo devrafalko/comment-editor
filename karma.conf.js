@@ -1,12 +1,12 @@
 // Karma configuration
+const webpackConfig = require('./webpack.config.js')
 
 module.exports = function (config) {
   config.set({
     autoWatch: true,
     basePath: '',
-    browsers: [ 'Chrome' ],
+    browsers: [ 'ChromeCanaryHeadless' ],
     colors: true,
-    concurrency: 1,
     coverageReporter: {
       dir: 'coverage/',
       instrumenterOptions: {
@@ -16,7 +16,8 @@ module.exports = function (config) {
     exclude: [],
     files: [
       'src/**/*.js',
-      'tests/**/*-test.js'
+      'tests/**/*.test.js',
+      'tests/**/*.spec.js'
     ],
     frameworks: [ 'jasmine', 'tap' ],
     logLevel: config.LOG_INFO,
@@ -27,13 +28,14 @@ module.exports = function (config) {
       'karma-coverage',
       'karma-eslint',
       'karma-jasmine',
-      'karma-phantomjs-launcher',
+      'karma-spec-reporter',
       'karma-tap',
       'karma-webpack'
     ],
     preprocessors: {
-      'src/**/*.js': [ 'eslint', 'webpack', 'coverage' ],
-      'tests/**/*-test.js': [ 'webpack' ]
+      'src/**/*.js': [ 'webpack' ],
+      'tests/**/*.test.js': [ 'webpack' ],
+      'tests/**/*.spec.js': [ 'webpack' ]
     },
     eslint: {
       engine: { configFile: '.eslintrc.json' },
@@ -43,7 +45,12 @@ module.exports = function (config) {
       stopOnError: false,
       stopOnWarning: false
     },
-    reporters: [ 'progress', 'coverage' ],
-    singleRun: false
+    webpack: webpackConfig,
+    webpackServer: {
+      noInfo: true
+    },
+    reporters: [ 'progress', 'spec', 'coverage' ],
+    singleRun: false,
+    concurrency: Infinity
   })
 }

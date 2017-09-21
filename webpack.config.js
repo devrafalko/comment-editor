@@ -24,9 +24,10 @@ module.exports = {
     // new webpack.optimize.UglifyJsPlugin()
   ],
   devServer: {
-    compress: true
+    compress: true,
+    hot: true
   },
-  watch: true,
+  watch: false,
   watchOptions: {
     ignored: '/node_modules/'
   }
