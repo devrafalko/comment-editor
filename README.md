@@ -76,4 +76,15 @@ An example using the commentEditor with autocompletion using the included test d
 
 #### Testing
 
+BUG: broken test harness, all tests FAIL! Tests are failing on DOM access becuase the karma-html framework does not properly load the #document element from `index.html`.
+
+To run all tests once and exit, run the npm `test` script from within the repository:
+```bash
+npm run test
+```
+
+To run test on file changes, continuous integration and development, run the npm `karma` script from within the 
+```bash
+npm run karma
+```
 
