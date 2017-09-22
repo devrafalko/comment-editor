@@ -4,6 +4,9 @@
         "es6": true,
         "jasmine": true
     },
+    "excludes": [
+        "**/node_modules/**"
+    ],
     "extends": "standard",
     "parserOptions": {
         "sourceType": "module"

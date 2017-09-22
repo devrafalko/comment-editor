@@ -14,11 +14,15 @@ module.exports = {
         loader: 'babel-loader',
         include: [
           '/src/**/*.js',
+          '/tests/*.js',
           '/tests/**/*.js'
         ],
         exclude: [ '/node_modules/' ]
       }
     ]
+  },
+  node: {
+    fs: 'empty'// prevent Error: Cannot find module "fs" when loading karma-html
   },
   plugins: [
     // new webpack.optimize.UglifyJsPlugin()

@@ -1,9 +1,10 @@
 {
-  "name": "usernames-autocomplete",
+  "name": "comment-editor",
   "version": "0.0.2",
-  "description": "A component to autocomplete usernames in an input element.",
-  "main": "autocomplete.js",
+  "description": "A text input component with basic autocompletion of terms.",
+  "main": "main.js",
   "directories": {
+    "app": "src",
     "test": "tests"
   },
   "scripts": {
@@ -40,26 +41,21 @@
     "eslint-plugin-node": "^5.1.1",
     "eslint-plugin-promise": "^3.5.0",
     "eslint-plugin-standard": "^3.0.1",
-    "faucet": "0.0.1",
     "gulp": "^3.9.1",
     "gulp-cli": "^1.4.0",
     "gulp-util": "^3.0.8",
     "jasmine": "^2.8.0",
     "jasmine-core": "^2.8.0",
-    "jsdom": "^11.2.0",
+    "jasmine-dom-custom-matchers": "^1.0.1",
     "karma": "^1.7.1",
     "karma-babel-preprocessor": "^7.0.0",
     "karma-chrome-launcher": "^2.2.0",
     "karma-coverage": "^1.1.1",
     "karma-eslint": "^2.2.0",
+    "karma-html": "^1.0.3",
     "karma-jasmine": "^1.1.0",
-    "karma-jsdom-launcher": "^6.1.2",
-    "karma-phantomjs-launcher": "^1.0.4",
     "karma-spec-reporter": "0.0.31",
-    "karma-tap": "^3.1.1",
-    "karma-tap-pretty-reporter": "^3.0.5",
     "karma-webpack": "^2.0.4",
-    "tape": "^4.8.0",
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.8.2"
   }
