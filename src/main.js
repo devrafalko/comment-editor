@@ -1,6 +1,7 @@
 import autocompleter from './autocompleter'
 import commentEditor from './commentEditor'
 
+// components must wait for DOM to be loaded in order to refernce elements
 document.addEventListener('DOMContentLoaded', function() {
   let autocomplete = autocompleter({
     dataUrl: '/data/users.json',
