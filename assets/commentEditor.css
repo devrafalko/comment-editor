@@ -1,3 +1,16 @@
+body {
+    display: flex;
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+}
+
+.centered {
+    margin: auto;
+}
+
 .component-container {
     box-sizing: content-box;
     width: 700px;
