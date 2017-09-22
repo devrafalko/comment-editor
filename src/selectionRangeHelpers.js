@@ -62,7 +62,7 @@ export const createRangeInElement = function (element, start, end) {
 }
 
 
-export const replaceSelectionWith = function (replacementRange, html) {
+export const replaceSelectionWith = function (replacementRange, replacementElement) {
   if (typeof window.getSelection !== 'undefined') {
     // set the selection to the range created for the text we want completed
     let selection = window.getSelection()
@@ -77,11 +77,12 @@ export const replaceSelectionWith = function (replacementRange, html) {
 
       // in order to add arbitrary elements to a document fragment
       // create a template element to temporarily hold the elements
-      let element = document.createElement('div')
-      element.innerHTML = html
+      // INVESTIGATE: alternate implementation using createContextualFrament
+      let template = document.createElement('template')
+      template.appendChild(replacementElement)
 
       let lastNode, node
-      while (node = element.firstChild) {
+      while (node = template.firstChild) {
         lastNode = fragment.appendChild(node)
       }
       range.insertNode(fragment)

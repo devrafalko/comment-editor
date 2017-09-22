@@ -1,14 +1,11 @@
-const createFancyTag = function (data) {
-  // let fancytag = document.createElement('span')
-  // fancytag.setAttribute('class', 'fancytag')
-  // REFACTOR: iterate over keys in data to generate data-*
-  // fancytag.dataset['name'] = value
-  // fancytag.appendChild(document.createTextNode(value))
+export const createFancyTag = function (data) {
+  let fancytag = document.createElement('span')
+  fancytag.setAttribute('class', 'fancytag')
+  fancytag.dataset[data.username] = data[data.username]
+  fancytag.appendChild(document.createTextNode(data.username))
 
-  // fancytagsObserver.observe(fancytag.firstChild, { characterData: true })
+  fancytagsObserver.observe(fancytag.firstChild, { characterData: true })
 
-  let fancytag =
-    `<span class="fancytag" data-username="${data.username}">${data.username}</span>`
   return fancytag
 }
 
@@ -22,5 +19,3 @@ const fancytagsObserver = new MutationObserver((mutations) => {
     }
   })
 })
-
-export default createFancyTag

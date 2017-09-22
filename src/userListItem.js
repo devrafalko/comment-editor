@@ -1,3 +1,5 @@
+import { createFancyTag } from './fancytags'
+
 const UserListItem = function (data) {
   let item = document.createElement('li')
   item.dataset['username'] = data.username
@@ -9,9 +11,9 @@ const UserListItem = function (data) {
   image.dataset['username'] = data.username
   item.appendChild(image)
 
-  // Display Text
-  let text = `${data.name} (${data.username})`
-  item.appendChild(document.createTextNode(text))
+  // Name and Username
+  item.appendChild(document.createTextNode(data.name))
+  item.appendChild(createFancyTag({ username: data.username }))
 
   return item
 }

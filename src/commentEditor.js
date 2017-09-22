@@ -1,4 +1,4 @@
-import createFancytag from './fancytags'
+import { createFancyTag } from './fancytags'
 import { replaceSelectionWith } from './selectionRangeHelpers'
 import SuggestionsList from './suggestionsList'
 
@@ -38,15 +38,6 @@ const commentEditor = function (options) {
 
   input.addEventListener('input', suggestCompletions, true)
   input.addEventListener('blur', suggestionsView.clear, true)
-
-  // BUG: import createFancyTag fails
-  // temporarily define it here as a fix.
-  const createFancyTag = function (data) {
-    let fancytag =
-      `<span class="fancytag" data-username="${data.username}">${data.username}</span>`
-    return fancytag
-  }
-
 
   // TODO: refactor so that we do not need to access the
   // suggestion list DOM element from this compnent...
