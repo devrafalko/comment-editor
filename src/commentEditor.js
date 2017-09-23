@@ -46,8 +46,7 @@ const commentEditor = function (options) {
     if (input.nodeName === 'INPUT') {
       // TODO: reimplement replacement in input and textarea elements
     } else {
-      let tagData = JSON.parse(event.detail)
-      replaceSelectionWith(autocompleteRange, createFancyTag(tagData))
+      replaceSelectionWith(autocompleteRange, event.detail.fancytag)
     }
   }, true)
 

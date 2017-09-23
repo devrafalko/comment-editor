@@ -11,9 +11,16 @@ const UserListItem = function (data) {
   image.dataset['username'] = data.username
   item.appendChild(image)
 
-  // Name and Username
+  // Name
   item.appendChild(document.createTextNode(data.name))
-  item.appendChild(createFancyTag({ username: data.username }))
+
+  // render username fancytag
+  let fancytag = createFancyTag({
+    name: 'username',
+    value: data.username,
+    text: data.username
+  })
+  item.appendChild(fancytag)
 
   return item
 }

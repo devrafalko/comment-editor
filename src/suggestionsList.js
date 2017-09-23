@@ -93,10 +93,10 @@ const SuggestionsList = function (inputElement) {
   const selectSuggestion = function (selected) {
     // create and dispatch a custom event
     let event = new CustomEvent('selected', {
-      detail: JSON.stringify(selected.dataset)
+      detail: { fancytag: selected.querySelector('.fancytag') }
     })
     selected.dispatchEvent(event)
-    setTimeout(clearSuggestions, 100)
+    setTimeout(clearSuggestions, 300)
   }
 
   const clearSuggestions = function () {

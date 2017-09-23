@@ -1,8 +1,20 @@
-export const createFancyTag = function (data) {
+/*
+  createFancyTag expects a data object with the following format
+    {
+      name: 'username',
+      value: 'flynn',
+      text: 'Kevin Flynn'
+    }
+
+    and will return the following HTML element
+    <span class="fancytag" data-username="flynn">Kevin Flynn</span>
+
+ */
+export const createFancyTag = function ({ name, value, text }) {
   let fancytag = document.createElement('span')
   fancytag.setAttribute('class', 'fancytag')
-  fancytag.dataset[data.username] = data[data.username]
-  fancytag.appendChild(document.createTextNode(data.username))
+  fancytag.dataset[name] = value
+  fancytag.appendChild(document.createTextNode(text))
 
   fancytagsObserver.observe(fancytag.firstChild, { characterData: true })
 
