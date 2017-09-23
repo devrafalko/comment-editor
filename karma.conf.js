@@ -18,7 +18,7 @@ module.exports = function (config) {
         pattern: 'dist/bundle.js',
         watched: true, served: true, nocache: true, included: false
       },
-      { pattern: 'src/**/*.js', watched: true },
+      { pattern: 'src/**/*.js', watched: true, included: false },
       { pattern: 'tests/**/*.spec.js', watched: true },
       { pattern: 'tests/**/*.test.js', watched: true }
     ],
@@ -42,6 +42,7 @@ module.exports = function (config) {
       'tests/**/*.test.js': [ 'webpack' ]
     },
     reporters: [ 'progress', 'karmaHTML' ],
+    clearContext:false,
     client: {
       karmaHTML: {
         auto: true,

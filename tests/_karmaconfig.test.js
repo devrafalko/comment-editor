@@ -2,7 +2,7 @@ import 'karma-html'
 import { customMatchers } from 'jasmine-dom-custom-matchers'
 
 describe('karma setup', function() {
-  beforeAll(function() {
+  beforeAll(function(done) {
     jasmine.addMatchers(customMatchers)
 
     karmaHTML.index.onstatechange = function(ready) {
